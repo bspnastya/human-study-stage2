@@ -249,9 +249,18 @@ remaining=max(0,TIME_LIMIT-(time.time()-st.session_state.phase_start_time))
 st.markdown(f"### Вопрос №{q['№']} из {len(st.session_state.questions)}")
 render_timer(math.ceil(remaining),str(st.session_state.idx))
 
-cont=st.empty()
-if remaining>0: cont.image(q["img"],width=300)
-else: cont.markdown("<div style='color:#666;font-style:italic;padding:40px 0;text-align:left;'>Время показа изображения истекло.</div>",unsafe_allow_html=True)
+if remaining>0:
+    components.html(f"""
+    <div id="img_{st.session_state.idx}" style="text-align:left;margin:5px 0;">
+      <img src="{q['img']}" width="300" style="border:1px solid #444;border-radius:8px;">
+    </div>
+    <script>
+      setTimeout(()=>{{const c=document.getElementById('img_{st.session_state.idx}');
+        if(c)c.innerHTML='<div style=\"font-style:italic;color:#666;padding:20px 0;\">Время показа изображения истекло.</div>';}},
+        {TIME_LIMIT*1000});
+    </script>""",height=310)
+else:
+    st.markdown("<div style='color:#666;font-style:italic;padding:40px 0;text-align:left;'>Время показа изображения истекло.</div>",unsafe_allow_html=True)
 
 st.markdown("---")
 
@@ -272,15 +281,14 @@ if q["qtype"]=="corners":
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
+    st.caption("Чтобы ввести буквы, нажмите Enter. Если не видите букв, очистите поле ввода")
     col,_=st.columns([1,3])
     with col:
-        
-        has_letters = q["group"] in WITH_CHARS
-       
-        disabled = has_letters
+        disabled=bool(txt.strip())
         if st.button("Не вижу букв",key=f"none{st.session_state.idx}",disabled=disabled):
             finish("Не вижу")
     if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
+
