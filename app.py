@@ -151,7 +151,7 @@ else:
         btn_clicked = st.button("Не вижу букв", key=f"none{st.session_state.idx}", disabled=has_letters)
         if btn_clicked:
             if has_letters:
-                st.error("Очистите поле ввода, если не видите букв.")
+                st.error("Очистите\u00A0поле\u00A0ввода,\u00A0если\u00A0не\u00A0видите\u00A0букв.")
             else:
                 finish("Не вижу")
     if not btn_clicked and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
