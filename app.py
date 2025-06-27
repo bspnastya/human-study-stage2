@@ -1,7 +1,3 @@
-# ───────────────────────────────────────────────────────────────────
-#  STAGE-2 HUMAN STUDY  ·  оформление И ТЕКСТЫ ОСТАВЛЕНЫ БЕЗ ИЗМЕНЕНИЙ
-#  изменена ТОЛЬКО логика отбора вопросов + запись во второй лист
-# ───────────────────────────────────────────────────────────────────
 from __future__ import annotations
 from streamlit_autorefresh import st_autorefresh
 import random, time, datetime, secrets, threading, queue, re, itertools, json, sys
@@ -48,24 +44,26 @@ if "initialized" not in st.session_state:
                             pause_until=0,_timer_flags={},
                             session_id=secrets.token_hex(8))
 
-
-components.html(f"""
+components.html("""
 <script>
 (function(){{
-  const f='{MOBILE_QS_FLAG}',m=innerWidth<1024;
-  if(m)document.documentElement.classList.add('mobile-client');
-  const qs=new URLSearchParams(location.search);
-  if(m&&!qs.has(f)){{qs.set(f,'1');location.search=qs.toString();}}
+  const flag='{flag}',isMobile=window.innerWidth<1024;
+  if(isMobile)document.documentElement.classList.add('mobile-client');
+  const qs=new URLSearchParams(window.location.search);
+  if(isMobile&&!qs.has(flag)){{qs.set(flag,'1');window.location.search=qs.toString();}}
 }})();
-</script>""",height=0)
+</script>""".format(flag=MOBILE_QS_FLAG),height=0)
 
-if st.experimental_get_query_params().get(MOBILE_QS_FLAG)==["1"]:
+q=st.query_params if hasattr(st,"query_params") else st.experimental_get_query_params()
+if q.get(MOBILE_QS_FLAG)==["1"]:
     st.markdown("""
-    <style>body{background:#808080;color:#fff;display:flex;align-items:center;
-    justify-content:center;height:100vh;margin:0;}h2{font-size:1.3rem;
-    font-weight:500;line-height:1.4;}</style>
+    <style>
+      body{background:#808080;color:#fff;text-align:center;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
+      h2{margin:0 auto;line-height:1.4;font-size:1.3rem;font-weight:500;}
+    </style>
     <h2>Уважаемый участник<br>Данное исследование доступно только с <strong>ПК или ноутбука</strong>.</h2>
-    """,unsafe_allow_html=True);st.stop()
+    """,unsafe_allow_html=True)
+    st.stop()
 
 
 st.markdown("""
@@ -78,7 +76,20 @@ header[data-testid="stHeader"]{display:none;}
 background:#222;color:#ddd;border-radius:8px;}
 input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 </style>""",unsafe_allow_html=True)
-
+st.markdown("""
+<style>
+html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}
+body{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;}
+h1,h2,h3,h4,h5,h6{color:#111!important;}
+header[data-testid="stHeader"]{display:none;}
+.stButton>button{min-height:52px!important;padding:0 20px!important;border:1px solid #555!important;background:#222!important;color:#ddd!important;border-radius:8px;}
+input[data-testid="stTextInput"]{height:52px!important;padding:0 16px!important;font-size:1.05rem;}
+#mobile-overlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;color:#fff;font:500 1.2rem/1.5 sans-serif;text-align:center;padding:0 20px;background:#808080;}
+@media(max-width:1023px){#mobile-overlay{display:flex;}.block-container>.element-container:nth-child(n+2){display:none!important;}html,body{overflow:hidden!important;height:100%!important;}}
+.stApp>div{-webkit-backface-visibility:hidden;backface-visibility:hidden;transition:opacity .1s ease-in-out;}
+</style>
+<div id="mobile-overlay">Уважаемый&nbsp;участник,<br>данное&nbsp;исследование доступно для прохождения только с&nbsp;ПК или&nbsp;ноутбука.</div>
+""",unsafe_allow_html=True)
 
 def open_book():
     scopes=["https://spreadsheets.google.com/feeds",
@@ -152,17 +163,21 @@ if not st.session_state.questions:
     st.session_state.questions = make_qs()
 
 def render_timer(sec:int,tid:str):
-    if tid in st.session_state._timer_flags: return
+    if tid in st.session_state.get("_timer_flags", {}):
+        return
     components.html(f"""
-    <div style="display:flex;justify-content:flex-start;margin:10px 0 15px 0;">
-      <div style="font-size:20px;font-weight:700;">Осталось&nbsp;<span id="t{tid}">{sec}</span>&nbsp;сек</div>
+    <div style="font-size:1.2rem;font-weight:bold;color:#111;margin-bottom:10px;margin-left:-8px;">
+      Осталось&nbsp;времени: <span id="t{tid}">{sec}</span>&nbsp;сек
     </div>
     <script>
-      let t{tid}={sec};
-      const s{tid}=document.getElementById('t{tid}');
-      const i{tid}=setInterval(()=>{{if(--t{tid}<0){{clearInterval(i{tid});return;}}
-      s{tid}.innerText=t{tid};}},1000);
-    </script>""",unsafe_allow_html=True)
+      (function(){{
+        let t={sec};
+        const span=document.getElementById('t{tid}');
+        const iv=setInterval(()=>{{if(--t<0){{clearInterval(iv);return;}}if(span)span.textContent=t;}},1000);
+      }})();
+    </script>""",height=50)
+    if "_timer_flags" not in st.session_state:
+        st.session_state._timer_flags = {}
     st.session_state._timer_flags[tid]=True
 
 
@@ -218,7 +233,7 @@ if st.session_state.phase=="intro":
 remain = TIME_LIMIT - (time.time()-st.session_state.phase_start_time)
 if remain<0: remain=0
 st.markdown(f"### Вопрос №{q['№']} из {len(st.session_state.questions)}")
-render_timer(int(remain), str(st.session_state.idx))
+render_timer(math.ceil(remaining),f"{idx}")
 
 ph = st.empty()
 if remain>0: ph.image(q["img"],width=300)
