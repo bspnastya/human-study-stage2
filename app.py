@@ -233,7 +233,7 @@ if st.session_state.phase=="intro":
 remain = TIME_LIMIT - (time.time()-st.session_state.phase_start_time)
 if remain<0: remain=0
 st.markdown(f"### Вопрос №{q['№']} из {len(st.session_state.questions)}")
-render_timer(math.ceil(remaining),f"{idx}")
+render_timer(math.ceil(remain),f"{idx}")
 
 ph = st.empty()
 if remain>0: ph.image(q["img"],width=300)
