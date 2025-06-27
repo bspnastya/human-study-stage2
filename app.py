@@ -2,8 +2,7 @@ from __future__ import annotations
 from streamlit_autorefresh import st_autorefresh
 import random, time, datetime, secrets, threading, queue, re, itertools, json, sys
 from typing import List, Dict
-import streamlit as st, gspread
-import streamlit.components.v1 as components
+import streamlit as st, gspread, streamlit.components.v1 as components
 from oauth2client.service_account import ServiceAccountCredentials
 from pathlib import Path
 
@@ -11,10 +10,10 @@ st.set_page_config(page_title="Визуализация многоканальн
                    page_icon="🎯", layout="centered",
                    initial_sidebar_state="collapsed")
 
-MOBILE_QS_FLAG    = "mobile"
-BASE_URL          = "https://storage.yandexcloud.net/test3123234442"
-TIME_LIMIT        = 15
-TARGET_SHOWS      = 21
+MOBILE_QS_FLAG = "mobile"
+BASE_URL       = "https://storage.yandexcloud.net/test3123234442"
+TIME_LIMIT     = 15
+TARGET_SHOWS   = 21
 
 GROUPS   = ["img1_dif_corners","img2_dif_corners","img3_same_corners_no_symb",
             "img4_same_corners","img5_same_corners"]
@@ -33,8 +32,8 @@ if "initialized" not in st.session_state:
 components.html(f"""
 <script>
 (function() {{
-  const f='{MOBILE_QS_FLAG}', m=innerWidth<1024;
-  if(m) document.documentElement.classList.add('mobile-client');
+  const f='{MOBILE_QS_FLAG}',m=innerWidth<1024;
+  if(m)document.documentElement.classList.add('mobile-client');
   const qs=new URLSearchParams(location.search);
   if(m&&!qs.has(f)){{qs.set(f,'1');location.search=qs.toString();}}
 }})();
@@ -58,14 +57,9 @@ header[data-testid="stHeader"]{display:none;}
 input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 </style>""", unsafe_allow_html=True)
 
-def url(g,a): return f"{BASE_URL}/{g}_{a}.png"
-def clean(s): return set(re.sub("[ ,.;:-]+","",s.lower()))
-
 def open_book():
-    scopes=["https://spreadsheets.google.com/feeds",
-            "https://www.googleapis.com/auth/drive"]
-    creds=ServiceAccountCredentials.from_json_keyfile_dict(
-        dict(st.secrets["gsp"]), scopes)
+    scopes=["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"]
+    creds=ServiceAccountCredentials.from_json_keyfile_dict(dict(st.secrets["gsp"]), scopes)
     return gspread.authorize(creds).open("human_study_results")
 
 BOOK     = open_book()
@@ -73,19 +67,44 @@ LOG_WS   = BOOK.worksheet("stage2_log")
 STAT_WS  = BOOK.worksheet("stage2_stats")
 
 def read_counters():
-    rows = STAT_WS.get_all_records()
+    rows=STAT_WS.get_all_records()
     return {(r["image_id"], r["alg"]): int(r["shows"]) for r in rows}
 
 def bump_counter(img, alg):
-    data = STAT_WS.get_all_values()
-    for i,row in enumerate(data[1:], start=2):
+    vals=STAT_WS.get_all_values()
+    for i,row in enumerate(vals[1:], start=2):
         if row[0]==img and row[1]==alg:
-            STAT_WS.update_cell(i,3,int(row[2] or 0)+1)
-            return
+            STAT_WS.update_cell(i,3,int(row[2] or 0)+1); return
     STAT_WS.append_row([img,alg,1], value_input_option="RAW")
 
+if "_WRITER" not in globals():
+    log_q=queue.Queue(maxsize=1000)
+    globals()["_GLOBAL_QUEUE"]=log_q
+    Path("backup_results").mkdir(exist_ok=True)
+
+    def writer():
+        buf=[]
+        while True:
+            try: buf.append(log_q.get(timeout=1))
+            except queue.Empty: pass
+            if buf:
+                try:
+                    LOG_WS.append_rows(buf, value_input_option="RAW"); buf.clear()
+                except:
+                    for r in buf:
+                        Path("backup_results", f"{int(time.time()*1e6)}.json"
+                            ).write_text(json.dumps(r, ensure_ascii=False))
+                    buf.clear()
+    threading.Thread(target=writer, daemon=True).start()
+    globals()["_WRITER"]=True
+else:
+    log_q=globals()["_GLOBAL_QUEUE"]
+
+def url(g,a): return f"{BASE_URL}/{g}_{a}.png"
+def clean(s): return set(re.sub("[ ,.;:-]+","",s.lower()))
+
 def make_qs():
-    cnt = read_counters()
+    cnt=read_counters()
     letters=[]
     for g in GROUPS:
         pool=[a for a in ALGS_LET if cnt.get((g,a),0)<TARGET_SHOWS]
@@ -97,44 +116,23 @@ def make_qs():
     corners=[{"group":g,"alg":a,"img":url(g,a),"qtype":"corners",
               "prompt":"Считаете ли вы, что правый верхний угол и нижний левый угол одного цвета с точностью до оттенка?",
               "correct":CORNER[g]}
-             for g,a in itertools.product(GROUPS,ALGS_COR)
+             for g,a in itertools.product(GROUPS, ALGS_COR)
              if cnt.get((g,a),0)<TARGET_SHOWS]
     seq=letters+corners
     random.shuffle(seq)
     for i,q in enumerate(seq,1): q["№"]=i
     return seq
 
-if not st.session_state.questions:
-    st.session_state.questions = make_qs()
-
-log_q = globals().setdefault("_GLOBAL_QUEUE", queue.Queue(maxsize=1000))
-if not globals().get("_WRITER"):
-    def writer():
-        buf=[]
-        while True:
-            try: buf.append(log_q.get(timeout=1))
-            except queue.Empty: pass
-            if buf:
-                try: LOG_WS.append_rows(buf, value_input_option="RAW"); buf.clear()
-                except: [ Path("backup_results").mkdir(exist_ok=True),
-                          Path("backup_results", f"{int(time.time()*1e6)}.json"
-                              ).write_text(json.dumps(r,ensure_ascii=False)) for r in buf ]; buf.clear()
-    threading.Thread(target=writer, daemon=True).start()
-    globals()["_WRITER"]=True
-
 def render_timer(sec, tid):
     if tid in st.session_state["_timer_flags"]: return
     components.html(f"""
     <div style="display:flex;justify-content:center;margin:10px 0 15px 0;">
-      <div style="font-size:20px;font-weight:700;">
-        Осталось&nbsp;<span id="t{tid}">{sec}</span>&nbsp;сек
-      </div>
+      <div style="font-size:20px;font-weight:700;">Осталось&nbsp;<span id="t{tid}">{sec}</span>&nbsp;сек</div>
     </div>
     <script>
-      let t{tid}={sec};
-      const s{tid}=document.getElementById('t{tid}');
+      let t{tid}={sec}; const s{tid}=document.getElementById('t{tid}');
       const i{tid}=setInterval(()=>{{if(--t{tid}<0){{clearInterval(i{tid});return;}}
-                                     if(s{tid}) s{tid}.innerText=t{tid};}},1000);
+      if(s{tid}) s{tid}.innerText=t{tid};}},1000);
     </script>""", height=70)
     st.session_state["_timer_flags"][tid]=True
 
@@ -150,6 +148,9 @@ def finish(ans):
                             phase_start_time=None, _timer_flags={})
     st.experimental_rerun()
 
+if not st.session_state.questions:
+    st.session_state.questions=make_qs()
+
 if st.session_state.pause_until>time.time():
     st_autorefresh(interval=600, key="pause"); st.stop()
 
@@ -158,12 +159,13 @@ if st.session_state.idx>=len(st.session_state.questions):
     st.balloons(); st.stop()
 
 if not st.session_state.name:
-    st.markdown("""
-    <h2 style="color:#111;">Уважаемый участник,<br>добро пожаловать в эксперимент по изучению восприятия изображений.</h2>
-    <p style="color:#111;">Для начала теста введите любой псевдоним и нажмите Enter или нажмите «Сгенерировать».</p>""",
-    unsafe_allow_html=True)
+    st.markdown("""<div style="color:#111;">
+    <h2>Уважаемый участник,<br>добро пожаловать в эксперимент по изучению восприятия изображений.</h2>
+    <p>Для начала теста введите любой псевдоним и нажмите Enter или нажмите «Сгенерировать псевдоним».</p>
+    </div>""", unsafe_allow_html=True)
     n=st.text_input("", placeholder="Ваш псевдоним", key="nm", label_visibility="collapsed")
-    if st.button("🎲 Сгенерировать"): st.session_state.name=f"Участник_{secrets.randbelow(900000)+100000}"; st.experimental_rerun()
+    if st.button("🎲 Сгенерировать псевдоним"):
+        st.session_state.name=f"Участник_{secrets.randbelow(900000)+100000}"; st.experimental_rerun()
     if n: st.session_state.name=n.strip(); st.experimental_rerun()
     st.stop()
 
@@ -175,12 +177,12 @@ if st.session_state.phase=="intro":
         st.session_state.update(phase="question", phase_start_time=time.time()); st.experimental_rerun()
     st.stop()
 
-remaining = TIME_LIMIT - (time.time()-st.session_state.phase_start_time)
+remaining=TIME_LIMIT-(time.time()-st.session_state.phase_start_time)
 if remaining<0: remaining=0
 st.markdown(f"### Вопрос №{q['№']} из {len(st.session_state.questions)}")
 render_timer(int(remaining), str(st.session_state.idx))
 
-placeholder = st.empty()
+placeholder=st.empty()
 if remaining>0:
     placeholder.image(q["img"], width=300)
 else:
@@ -189,7 +191,8 @@ else:
 st.markdown("---")
 
 if q["qtype"]=="corners":
-    sel=st.radio("",["Да, углы одного цвета.","Нет, углы окрашены в разные цвета.","Затрудняюсь ответить."], index=None, key=f"r{st.session_state.idx}")
+    sel=st.radio("",["Да, углы одного цвета.","Нет, углы окрашены в разные цвета.","Затрудняюсь ответить."],
+                 index=None, key=f"r{st.session_state.idx}")
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
     txt=st.text_input(q["prompt"], key=f"t{st.session_state.idx}", placeholder="Введите буквы и Enter")
@@ -202,4 +205,5 @@ else:
         finish(txt.strip())
     elif txt and btn_dis:
         st.info("Нажмите Enter, если указали буквы.")
+
 
