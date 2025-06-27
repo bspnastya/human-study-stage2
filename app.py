@@ -52,53 +52,113 @@ st.markdown("""
 html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}
 h1,h2,h3,h4,h5,h6,p,label,li,span{color:#111!important;}
 header[data-testid="stHeader"]{display:none;}
-.stButton>button{
-    min-height:52px;
-    padding:0 20px;
-    border:1px solid #555;
-    background:#222;
-    color:#fff!important;
-    border-radius:8px;
+
+.stButton > button {
+    min-height:52px !important;
+    padding:0 20px !important;
+    border:1px solid #555 !important;
+    background:#222 !important;
+    color:#ffffff !important;
+    border-radius:8px !important;
 }
-.stButton>button:hover{
-    background:#333;
-    color:#fff!important;
+.stButton > button:hover {
+    background:#333 !important;
+    color:#ffffff !important;
 }
-.stButton>button:disabled{
-    background:#444;
-    color:#888!important;
-    cursor:not-allowed;
-    opacity:0.6;
+.stButton > button:focus {
+    background:#333 !important;
+    color:#ffffff !important;
+    box-shadow: none !important;
+}
+.stButton > button:disabled {
+    background:#444 !important;
+    color:#888 !important;
+    cursor:not-allowed !important;
+    opacity:0.6 !important;
+}
+
+.stButton > button > div {
+    color: inherit !important;
+}
+.stButton > button > div > p {
+    color: inherit !important;
 }
 input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 </style>""",unsafe_allow_html=True)
 
 
+@st.cache_resource
 def open_book():
-    scopes=["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"]
-    creds=ServiceAccountCredentials.from_json_keyfile_dict(dict(st.secrets["gsp"]),scopes)
-    return gspread.authorize(creds).open("human_study_results")
-BOOK=open_book(); LOG_WS=BOOK.worksheet("stage2_log"); STAT_WS=BOOK.worksheet("stage2_stats")
+    try:
+        scopes=["https://spreadsheets.google.com/feeds","https://www.googleapis.com/auth/drive"]
+        creds=ServiceAccountCredentials.from_json_keyfile_dict(dict(st.secrets["gsp"]),scopes)
+        return gspread.authorize(creds).open("human_study_results")
+    except Exception as e:
+        st.error(f"Ошибка подключения к Google Sheets: {str(e)}")
+        st.stop()
 
-def read_counters(): return {(r["image_id"],r["alg"]):int(r["shows"]) for r in STAT_WS.get_all_records()}
+@st.cache_resource
+def get_worksheets():
+    book = open_book()
+    try:
+        log_ws = book.worksheet("stage2_log")
+    except:
+        
+        log_ws = book.add_worksheet("stage2_log", rows=1000, cols=20)
+        log_ws.append_row(["timestamp","user","qnum","group","alg","qtype","prompt","answer","correct","time_ms","is_correct","session_id"])
+    
+    try:
+        stat_ws = book.worksheet("stage2_stats")
+    except:
+       
+        stat_ws = book.add_worksheet("stage2_stats", rows=100, cols=3)
+        stat_ws.append_row(["image_id","alg","shows"])
+    
+    return log_ws, stat_ws
+
+LOG_WS, STAT_WS = get_worksheets()
+
+@st.cache_data(ttl=10)
+def read_counters(): 
+    try:
+        records = STAT_WS.get_all_records()
+        return {(r["image_id"],r["alg"]):int(r.get("shows", 0)) for r in records}
+    except:
+        return {}
+
 def bump_counter(img,alg):
-    rows=STAT_WS.get_all_values()
-    for i,row in enumerate(rows[1:],start=2):
-        if row[0]==img and row[1]==alg:
-            STAT_WS.update_cell(i,3,int(row[2] or 0)+1); return
-    STAT_WS.append_row([img,alg,1],value_input_option="RAW")
+    try:
+        rows=STAT_WS.get_all_values()
+        for i,row in enumerate(rows[1:],start=2):
+            if len(row) >= 3 and row[0]==img and row[1]==alg:
+                STAT_WS.update_cell(i,3,int(row[2] or 0)+1)
+                return
+        STAT_WS.append_row([img,alg,1],value_input_option="RAW")
+    except:
+        pass
 
 Q=globals().setdefault("_Q",queue.Queue(maxsize=1000))
 if not globals().get("_W"):
     def w():
         buf=[]
         while True:
-            try: buf.append(Q.get(timeout=1))
-            except queue.Empty: pass
-            if buf:
-                try: LOG_WS.append_rows(buf,value_input_option="RAW"); buf.clear()
-                except: buf.clear()
-    threading.Thread(target=w,daemon=True).start(); globals()["_W"]=True
+            try: 
+                buf.append(Q.get(timeout=1))
+                if len(buf) >= 5:  
+                    try: 
+                        LOG_WS.append_rows(buf,value_input_option="RAW")
+                        buf.clear()
+                    except: 
+                        buf.clear()
+            except queue.Empty: 
+                if buf:  
+                    try: 
+                        LOG_WS.append_rows(buf,value_input_option="RAW")
+                        buf.clear()
+                    except: 
+                        buf.clear()
+    threading.Thread(target=w,daemon=True).start()
+    globals()["_W"]=True
 
 
 if "letters_plan" not in st.session_state:
@@ -214,9 +274,9 @@ else:
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
     col,_=st.columns([1,3])
     with col:
-
+        
         has_letters = q["group"] in WITH_CHARS
-
+       
         disabled = has_letters
         if st.button("Не вижу букв",key=f"none{st.session_state.idx}",disabled=disabled):
             finish("Не вижу")
@@ -224,3 +284,4 @@ else:
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
+
