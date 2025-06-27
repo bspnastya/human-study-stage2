@@ -1,4 +1,4 @@
-чfrom __future__ import annotations
+from __future__ import annotations
 from streamlit_autorefresh import st_autorefresh
 import random, time, datetime, secrets, threading, queue, re, itertools, sys, math
 from typing import List, Dict
