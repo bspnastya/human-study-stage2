@@ -1,0 +1,5 @@
+streamlit==1.35.0
+streamlit-autorefresh
+gspread
+oauth2client
+Pillow==10.4.0
