@@ -148,12 +148,13 @@ else:
     col, _ = st.columns([1, 3])
     with col:
         has_letters = bool(re.search(r"[А-Яа-яЁё]", txt))
-        if st.button("Не вижу букв", key=f"none{st.session_state.idx}", disabled=has_letters):
+        btn_clicked = st.button("Не вижу букв", key=f"none{st.session_state.idx}", disabled=has_letters)
+        if btn_clicked:
             if has_letters:
                 st.error("Очистите поле ввода, если не видите букв.")
             else:
                 finish("Не вижу")
-    if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
+    if not btn_clicked and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
