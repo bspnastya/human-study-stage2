@@ -274,14 +274,15 @@ else:
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
     col,_=st.columns([1,3])
     with col:
-        
-        has_letters = q["group"] in WITH_CHARS
-       
-        disabled = has_letters
+        disabled=bool(re.search(r"[А-Яа-яЁё]",txt or ""))
         if st.button("Не вижу букв",key=f"none{st.session_state.idx}",disabled=disabled):
             finish("Не вижу")
     if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
+    if disabled:
+        st.info("Чтобы ввести буквы, нажмите Enter. Если не видите букв, очистите поле ввода.")
 
+if remaining>0:
+    st_autorefresh(interval=1000,key=f"timer_refresh_{st.session_state.idx}")
