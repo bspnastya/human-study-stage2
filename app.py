@@ -52,7 +52,24 @@ st.markdown("""
 html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}
 h1,h2,h3,h4,h5,h6,p,label,li,span{color:#111!important;}
 header[data-testid="stHeader"]{display:none;}
-.stButton>button{min-height:52px;padding:0 20px;border:1px solid #555;background:#222;color:#fff;border-radius:8px;}
+.stButton>button{
+    min-height:52px;
+    padding:0 20px;
+    border:1px solid #555;
+    background:#222;
+    color:#fff!important;
+    border-radius:8px;
+}
+.stButton>button:hover{
+    background:#333;
+    color:#fff!important;
+}
+.stButton>button:disabled{
+    background:#444;
+    color:#888!important;
+    cursor:not-allowed;
+    opacity:0.6;
+}
 input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 </style>""",unsafe_allow_html=True)
 
@@ -73,8 +90,6 @@ def bump_counter(img,alg):
 
 Q=globals().setdefault("_Q",queue.Queue(maxsize=1000))
 if not globals().get("_W"):
-    def w():buf=[]; 
-
     def w():
         buf=[]
         while True:
@@ -199,13 +214,13 @@ else:
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
     col,_=st.columns([1,3])
     with col:
-        disabled=bool(re.search(r"[А-Яа-яЁё]",txt or ""))
+
+        has_letters = q["group"] in WITH_CHARS
+
+        disabled = has_letters
         if st.button("Не вижу букв",key=f"none{st.session_state.idx}",disabled=disabled):
             finish("Не вижу")
     if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
-    elif txt and disabled:
-        st.info("Нажмите Enter, если указали буквы.")
-
