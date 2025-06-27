@@ -146,16 +146,20 @@ else:
     txt = st.text_input(q["prompt"], key=f"t{st.session_state.idx}", placeholder="Введите русские буквы и нажмите Enter")
     st.caption("Чтобы ввести буквы, нажмите Enter. Если не видите букв, очистите поле ввода")
     col, _ = st.columns([1, 3])
+    error_flag = False
     with col:
         has_letters = bool(re.search(r"[А-Яа-яЁё]", txt))
         btn_clicked = st.button("Не вижу букв", key=f"none{st.session_state.idx}", disabled=has_letters)
         if btn_clicked:
             if has_letters:
-                st.error("Очистите\u00A0поле\u00A0ввода,\u00A0если\u00A0не\u00A0видите\u00A0букв.")
+                error_flag = True
             else:
                 finish("Не вижу")
+    if error_flag:
+        st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Очистите&nbsp;поле&nbsp;ввода,&nbsp;если&nbsp;не&nbsp;видите&nbsp;букв.</div>", unsafe_allow_html=True)
     if not btn_clicked and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
+
 
