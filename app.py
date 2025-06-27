@@ -113,18 +113,24 @@ def make_qs():
 if not st.session_state.questions:
     st.session_state.questions = make_qs()
 
-def render_timer(sec, tid):
-    if tid in st.session_state["_timer_flags"]: return
-    components.html(f"""
+def render_timer(sec:int, tid:str):
+    if tid in st.session_state["_timer_flags"]:
+        return
+    st.markdown(f"""
     <div style="display:flex;justify-content:center;margin:10px 0 15px 0;">
-      <div style="font-size:20px;font-weight:700;">Осталось&nbsp;<span id="t{tid}">{sec}</span>&nbsp;сек</div>
+      <div style="font-size:20px;font-weight:700;">
+        Осталось&nbsp;<span id="t{tid}">{sec}</span>&nbsp;сек
+      </div>
     </div>
     <script>
       let t{tid}={sec};
       const s{tid}=document.getElementById('t{tid}');
-      const i{tid}=setInterval(()=>{{if(--t{tid}<0){{clearInterval(i{tid});return;}}s{tid}.innerText=t{tid};}},1000);
-    </script>""", unsafe_allow_html=True)
+      const i{tid}=setInterval(()=>{{if(--t{tid}<0){{clearInterval(i{tid});return;}}
+                                     if(s{tid}) s{tid}.innerText=t{tid};}},1000);
+    </script>
+    """, unsafe_allow_html=True)
     st.session_state["_timer_flags"][tid] = True
+
 
 def clean(s): return set(re.sub("[ ,.;:-]+", "", s.lower()))
 
@@ -177,6 +183,7 @@ if remaining < 0: remaining = 0
 
 st.markdown(f"### Вопрос №{q['№']} из {len(st.session_state.questions)}")
 render_timer(int(remaining), str(st.session_state.idx))
+
 
 placeholder = st.empty()
 if remaining > 0:
