@@ -144,7 +144,7 @@ if q["qtype"] == "corners":
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
     txt = st.text_input(q["prompt"], key=f"t{st.session_state.idx}", placeholder="Введите русские буквы и нажмите Enter")
-    st.caption("Чтобы ввести буквы, нажмите Enter. Если не видите букв, очистите поле ввода")
+    st.caption("Чтобы ввести буквы, нажмите Enter. Если не видите букв, очистите поле ввода.")
     col, _ = st.columns([1, 3])
     error_flag = False
     with col:
