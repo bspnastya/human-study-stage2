@@ -84,7 +84,7 @@ def make_qs() -> List[Dict]:
     for g in GROUPS:
         alg = st.session_state.letters_plan[g]
         if cnt.get((g, alg), 0) < TARGET_SHOWS:
-            qs.append({"group": g, "alg": alg, "img": url(g, alg), "qtype": "letters", "prompt": "Если на изображении вы видите буквы, то укажите, какие именно.", "correct": LETTER[g]})
+            qs.append({"group": g, "alg": alg, "img": url(g, alg), "qtype": "letters", "prompt": "Если на изображении вы видите буквы, то укажите, какие именно", "correct": LETTER[g]})
     for g, alg in itertools.product(GROUPS, ALGS_COR):
         if cnt.get((g, alg), 0) < TARGET_SHOWS:
             qs.append({"group": g, "alg": alg, "img": url(g, alg), "qtype": "corners", "prompt": "Считаете ли вы, что правый верхний угол и нижний левый угол одного цвета с точностью до оттенка?", "correct": CORNER[g]})
