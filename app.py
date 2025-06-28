@@ -84,7 +84,7 @@ def make_qs() -> List[Dict]:
     for g in GROUPS:
         alg = st.session_state.letters_plan[g]
         if cnt.get((g, alg), 0) < TARGET_SHOWS:
-            qs.append({"group": g, "alg": alg, "img": url(g, alg), "qtype": "letters", "prompt": "Если на изображении вы видите буквы, то укажите, какие именно", "correct": LETTER[g]})
+            qs.append({"group": g, "alg": alg, "img": url(g, alg), "qtype": "letters", "prompt": ""Введите в поле ниже буквы и нажмите Enter. Если вы не видите букв, то очистите поле ввода.", "correct": LETTER[g]})
     for g, alg in itertools.product(GROUPS, ALGS_COR):
         if cnt.get((g, alg), 0) < TARGET_SHOWS:
             qs.append({"group": g, "alg": alg, "img": url(g, alg), "qtype": "corners", "prompt": "Считаете ли вы, что правый верхний угол и нижний левый угол одного цвета с точностью до оттенка?", "correct": CORNER[g]})
@@ -112,8 +112,8 @@ if st.session_state.idx >= len(st.session_state.questions):
 q = st.session_state.questions[st.session_state.idx]
 
 if st.session_state.phase == "intro":
-    txt_c = """Сейчас вы увидите изображение. Цель данного вопроса — посмотреть на диаметрально противоположные углы,<b>правый верхний и левый нижний</b>, и определить, окрашены ли они в одинаково с точностью до оттенка.<br><br>Картинка будет доступна в течение <b>15&nbsp;секунд</b>. Время на ответ не ограничено."""
-    txt_l = """Сейчас вы увидите изображение. Цель данного вопроса — определить, есть ли на представленной картинке<b>буквы русского алфавита</b>.<br><br>Найденные буквы необходимо ввести в текстовое поле: допускается разделение пробелами, запятыми и т.&nbsp;д., а также слитное написание.<br><br>Если букв нет — нажмите кнопку <b>«Не вижу букв»</b>."""
+    txt_c = """Сейчас вы увидите изображение. Цель данного вопроса — посмотреть на диаметрально противоположные углы, <b>правый верхний и левый нижний</b>, и определить, окрашены ли они в одинаково с точностью до оттенка.<br><br>Картинка будет доступна в течение <b>15&nbsp;секунд</b>. Время на ответ не ограничено."""
+    txt_l = """Сейчас вы увидите изображение. Цель данного вопроса — определить, есть ли на представленной картинке <b>буквы русского алфавита</b>.<br><br>Найденные буквы необходимо ввести в текстовое поле: допускается разделение пробелами, запятыми и т.&nbsp;д., а также слитное написание.<br><br>Если букв нет — нажмите кнопку <b>«Не вижу букв»</b>."""
     st.markdown(f"<div style='font-size:1.1rem;line-height:1.6;margin-bottom:30px;'>{txt_c if q['qtype']=='corners' else txt_l}</div>", unsafe_allow_html=True)
     if st.button("Перейти к вопросу", key=f"go{st.session_state.idx}"):
         st.session_state.update(phase="question", phase_start_time=time.time()); st.experimental_rerun()
@@ -143,7 +143,6 @@ if q["qtype"] == "corners":
     sel = st.radio(q["prompt"], ["Да, углы одного цвета.","Нет, углы окрашены в разные цвета.","Затрудняюсь ответить."], index=None, key=f"r{st.session_state.idx}")
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
-    st.caption("Введите в поле ввода буквы и нажмите Enter. Если вы не видите букв, то очистите поле ввода.")
     txt = st.text_input(q["prompt"], key=f"t{st.session_state.idx}", placeholder="Введите русские буквы и нажмите Enter")
     col, _ = st.columns([1, 3])
     error_flag = False
