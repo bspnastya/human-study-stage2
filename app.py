@@ -144,14 +144,20 @@ else:
     form_key=f"form{st.session_state.idx}"
     with st.form(key=form_key,clear_on_submit=False):
         txt=st.text_input("",key=f"t{st.session_state.idx}_in",placeholder="Введите русские буквы и нажмите Enter")
-        submitted=st.form_submit_button("Отправить")
+        col1,col2=st.columns([1,1])
+        with col1:
+            submitted=st.form_submit_button("Отправить")
+        with col2:
+            none_clicked=st.form_submit_button("Не вижу букв")
     has_letters=bool(re.search(r"[А-Яа-яЁё]",txt))
-    show_error=st.button("Не вижу букв",key=f"none{st.session_state.idx}")
-    if show_error and has_letters:
-        st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Очистите&nbsp;поле&nbsp;ввода,&nbsp;если&nbsp;не&nbsp;видите&nbsp;букв.</div>",unsafe_allow_html=True)
-    elif show_error and not has_letters:
-        finish("Не вижу")
-    if submitted and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
-        finish(txt.strip())
-    elif submitted and txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
-        st.error("Допустимы только русские буквы и знаки пунктуации.")
+    if none_clicked:
+        if has_letters:
+            st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Очистите&nbsp;поле&nbsp;ввода,&nbsp;если&nbsp;не&nbsp;видите&nbsp;букв.</div>",unsafe_allow_html=True)
+        else:
+            finish("Не вижу")
+    elif submitted:
+        if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
+            finish(txt.strip())
+        elif txt:
+            st.error("Допустимы только русские буквы и знаки пунктуации.")
+
