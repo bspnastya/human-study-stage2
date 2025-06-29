@@ -25,18 +25,7 @@ components.html(f"""<script>(function(){{const f='{MOBILE_QS_FLAG}',m=innerWidth
 if st.experimental_get_query_params().get(MOBILE_QS_FLAG)==["1"]:
     st.markdown("""<style>body{background:#808080;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}h2{font-size:1.3rem;font-weight:500;line-height:1.4;}</style><h2>Уважаемый участник<br>Данное исследование доступно только с <strong>ПК или ноутбука</strong>.</h2>""",unsafe_allow_html=True); st.stop()
 
-st.markdown("""<style>
-html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}
-h1,h2,h3,h4,h5,h6,p,label,li,span{color:#111!important;}
-header[data-testid="stHeader"]{display:none;}
-.stButton>button{min-height:52px!important;padding:0 24px!important;border:1px solid #555!important;background:#222!important;color:#fff!important;border-radius:8px!important;}
-.stButton>button:hover{background:#333!important;color:#fff!important;}
-.stButton>button:focus{background:#333!important;color:#fff!important;box-shadow:none!important;}
-.stButton>button:disabled{background:#444!important;color:#888!important;opacity:0.6!important;}
-input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
-.stForm,.stForm>div{border:none!important;padding:0!important;background:transparent!important;}
-.stForm .stColumns{gap:8px!important;}
-</style>""",unsafe_allow_html=True)
+st.markdown("""<style>html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}h1,h2,h3,h4,h5,h6,p,label,li,span{color:#111!important;}header[data-testid="stHeader"]{display:none;}.stButton>button{min-height:52px!important;padding:0 20px!important;border:1px solid #555!important;background:#222!important;color:#fff!important;border-radius:8px!important;}.stButton>button:hover{background:#333!important;color:#fff!important;}.stButton>button:focus{background:#333!important;color:#fff!important;box-shadow:none!important;}.stButton>button:disabled{background:#444!important;color:#888!important;cursor:not-allowed!important;opacity:0.6!important;}.stButton>button>div,.stButton>button>div>p{color:inherit!important;}input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}</style>""",unsafe_allow_html=True)
 
 @st.cache_resource
 def open_book():
@@ -151,18 +140,21 @@ if q["qtype"]=="corners":
     sel=st.radio(q["prompt"],["Да, углы одного цвета.","Нет, углы окрашены в разные цвета.","Затрудняюсь ответить."],index=None,key=f"r{st.session_state.idx}")
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
-    st.write(q["prompt"])
-    form_key=f"form{st.session_state.idx}"
-    with st.form(key=form_key,clear_on_submit=False):
-        txt=st.text_input("",key=f"t{st.session_state.idx}_in",placeholder="Введите русские буквы и нажмите Enter")
-        col1,col2=st.columns(2)
-        with col1: sub=st.form_submit_button("Отправить")
-        with col2: none=st.form_submit_button("Не вижу букв")
-    has_letters=bool(re.search(r"[А-Яа-яЁё]",txt))
-    if none:
-        if has_letters: st.warning("Очистите поле ввода, если не видите букв.")
-        else: finish("Не вижу",q); st.experimental_rerun()
-    if sub:
-        if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt): finish(txt.strip(),q); st.experimental_rerun()
-        elif txt: st.error("Допустимы только русские буквы и знаки пунктуации.")
+    txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
+    col,_=st.columns([1,3])
+    error_flag=False
+    with col:
+        has_letters=bool(re.search(r"[А-Яа-яЁё]",txt))
+        btn_clicked=st.button("Не вижу букв",key=f"none{st.session_state.idx}")
+        if btn_clicked:
+            if has_letters:
+                error_flag=True
+            else:
+                finish("Не вижу")
+    if error_flag:
+        st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Очистите&nbsp;поле&nbsp;ввода,&nbsp;если&nbsp;не&nbsp;видите&nbsp;букв.</div>",unsafe_allow_html=True)
+    if not error_flag and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
+        finish(txt.strip())
+    elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
+        st.error("Допустимы только русские буквы и знаки пунктуации.")
 
