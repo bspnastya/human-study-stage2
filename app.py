@@ -116,32 +116,19 @@ if q["qtype"]=="corners":
     sel=st.radio(q["prompt"],["Да, углы одного цвета.","Нет, углы окрашены в разные цвета.","Затрудняюсь ответить."],index=None,key=f"r{st.session_state.idx}")
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
-
-    txt_key = f"prev_txt_{st.session_state.idx}"
-    error_key = f"show_error_{st.session_state.idx}"
-    
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
-    
-
-    if txt_key in st.session_state and st.session_state[txt_key] != txt:
-        st.session_state[error_key] = False
-    st.session_state[txt_key] = txt
-    
     col,_=st.columns([1,3])
-    
+    error_flag=False
     with col:
         has_letters=bool(re.search(r"[А-Яа-яЁё]",txt))
-        if st.button("Не вижу букв",key=f"none{st.session_state.idx}"):
+        btn_clicked=st.button("Не вижу букв",key=f"none{st.session_state.idx}")
+        if btn_clicked:
             if has_letters:
-                st.session_state[error_key] = True
+                error_flag=True
             else:
                 finish("Не вижу")
-    
-
-    if error_key in st.session_state and st.session_state[error_key]:
+    if error_flag:
         st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Очистите&nbsp;поле&nbsp;ввода,&nbsp;если&nbsp;не&nbsp;видите&nbsp;букв.</div>",unsafe_allow_html=True)
-    
-   
     if txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
