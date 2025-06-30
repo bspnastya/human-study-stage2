@@ -59,27 +59,32 @@ div[data-testid="stForm"]{
 }
 
 div[data-testid="stHorizontalBlock"]{
-    gap:8px !important; 
+    gap:0px !important;
+    margin:0 !important;
+    padding:0 !important;
 }
 
+div[data-testid="column"] {
+    padding:0 !important;
+    margin:0 !important;
+    width:auto !important;
+    flex-grow:0 !important;
+}
+
+form div[data-testid="column"] {
+    padding-right:4px !important;
+}
+form div[data-testid="column"]:last-child {
+    padding-right:0 !important;
+}
 .stButton>button{
     white-space:nowrap!important;
     min-width:170px!important;
+    margin:0 !important;
 }
-
-
-div[data-testid="column"] {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-}
-
-
-div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {
-    padding-right: 4px !important;
-}
-
-div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
-    padding-left: 4px !important;
+.stButton {
+    margin:0 !important;
+    padding:0 !important;
 }
 </style>
 """, unsafe_allow_html=True)
