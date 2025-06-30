@@ -77,6 +77,7 @@ if "letters_plan" not in st.session_state:
     st.session_state.letters_plan[NO_CHAR]=random.choice(ALGS_LET)
 
 def url(g,a): return f"{BASE_URL}/{g}_{a}.png"
+
 def clean(s): return set(re.sub("[ ,.;:-]+","",(s or "").lower()))
 
 def make_qs()->List[Dict]:
@@ -131,7 +132,7 @@ st.markdown("---")
 
 def finish(ans:str):
     ms=int((time.time()-st.session_state.phase_start_time)*1000)
-    ok=clean(ans)==clean(q["correct"]) if q["qtype"]=="letters" else ans.lower()==q["correct"].lower()
+    ok=clean(ans)==clean(q["correct") ] if q["qtype"]=="letters" else ans.lower()==q["correct"].lower()
     Q.put([datetime.datetime.utcnow().isoformat(),st.session_state.name,q["№"],q["group"],q["alg"],q["qtype"],q["prompt"],ans,q["correct"],ms,ok,st.session_state.session_id])
     bump_counter(q["group"],q["alg"])
     st.session_state.update(idx=st.session_state.idx+1,phase="intro",phase_start_time=None,_timer_flags={}); st.experimental_rerun()
@@ -140,20 +141,44 @@ if q["qtype"]=="corners":
     sel=st.radio(q["prompt"],["Да","Нет","Затрудняюсь ответить"],index=None,key=f"r{st.session_state.idx}")
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
+    
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
-    col,_=st.columns([1,3])
-    error_flag=False
-    with col:
-        has_letters=bool(re.search(r"[А-Яа-яЁё]",txt))
-        btn_clicked=st.button("Не вижу букв",key=f"none{st.session_state.idx}")
-        if btn_clicked:
-            if has_letters:
-                error_flag=True
-            else:
-                finish("Не вижу")
+
+    
+    col_send, col_none, _ = st.columns([1,1,2])
+    submit_clicked = col_send.button("Отправить", key=f"submit{st.session_state.idx}")
+    none_clicked   = col_none.button("Не вижу букв", key=f"none{st.session_state.idx}")
+
+    has_letters = bool(re.search(r"[А-Яа-яЁё]", txt))
+    error_flag  = False
+    handled     = False  
+
+    
+    if none_clicked:
+        if has_letters:
+            error_flag = True
+        else:
+            finish("Не вижу")
+        handled = True
+
+   
+    if submit_clicked and not handled:
+        if not txt:
+            st.error("Введите буквы или нажмите «Не вижу букв».")
+            handled = True
+        elif not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
+            st.error("Допустимы только русские буквы и знаки пунктуации.")
+            handled = True
+        else:
+            finish(txt.strip())
+            handled = True
+
+    
     if error_flag:
         st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Если&nbsp;не&nbsp;видите&nbsp;букв,&nbsp;удалите&nbsp;введенные&nbsp;буквы&nbsp;и&nbsp;нажмите&nbsp;«Не&nbsp;вижу&nbsp;букв»&nbsp;еще&nbsp;раз</div>",unsafe_allow_html=True)
-    if not error_flag and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
+
+    if not handled and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
         finish(txt.strip())
-    elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
+    elif not handled and txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
+
