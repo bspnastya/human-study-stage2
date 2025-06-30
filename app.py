@@ -79,6 +79,28 @@ div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-test
     white-space:nowrap!important;
     min-width:170px!important;
     width: 100% !important;
+    font-size: 1.05rem !important; 
+}
+
+input[data-testid="stTextInput"]{
+    height:52px;
+    padding:0 16px;
+    font-size:1.05rem !important; 
+}
+
+.stTextInput > label {
+    font-size: 1.05rem !important; 
+}
+
+input[data-testid="stTextInput"]::placeholder {
+    font-size: 1.05rem !important;
+}
+
+.stAlert {
+    font-size: 1.05rem !important;
+}
+form p {
+    font-size: 1.05rem !important;
 }
 </style>
 """, unsafe_allow_html=True)
