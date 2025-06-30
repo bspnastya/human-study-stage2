@@ -52,57 +52,42 @@ input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 st.markdown("""
 <style>
 form[data-testid="stForm"],
-div[data-testid="stForm"]{
-   border:none!important;
-   padding:0!important;
-   background:transparent!important;
+div[data-testid="stForm"]{        
+    border:none!important;
+    padding:0!important;
+    background:transparent!important;
 }
 
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] {
-   gap: 4px !important;
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"]{
+    gap:4px!important;
 }
 
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
-   padding: 0 !important;
-   flex: 1 !important;
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
+    padding:0!important;
+    flex:1!important;
+}
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child{
+    padding-right:2px!important;
+}
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child{
+    padding-left:2px!important;
 }
 
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {
-   padding-right: 2px !important;
-}
-
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
-   padding-left: 2px !important;
+form[data-testid="stForm"] .stTextInput > label,                
+form[data-testid="stForm"] input[data-testid="stTextInput"],     
+form[data-testid="stForm"] input[data-testid="stTextInput"]::placeholder,
+form[data-testid="stForm"] .stButton>button,                    
+form[data-testid="stForm"] .stAlert,                            
+.stRadio > label,                                           
+.stRadio div[role="radiogroup"] label                          
+{
+    font-size:1.1rem !important;
 }
 
 .stButton>button{
-   white-space:nowrap!important;
-   min-width:170px!important;
-   width: 100% !important;
-}
-
-form[data-testid="stForm"] .stTextInput > label {
-   font-size: 1.1rem !important;
-}
-
-form[data-testid="stForm"] input[data-testid="stTextInput"] {
-   font-size: 1.1rem !important;
-}
-
-form[data-testid="stForm"] input[data-testid="stTextInput"]::placeholder {
-   font-size: 1.1rem !important;
-}
-
-form[data-testid="stForm"] .stButton>button {
-   font-size: 1.1rem !important;
-}
-
-.stRadio > label {
-   font-size: 1.1rem !important;
-}
-
-form[data-testid="stForm"] .stAlert {
-   font-size: 1.1rem !important;
+    white-space:nowrap!important;
+    width:100%!important;
+    min-width:170px!important;
 }
 </style>
 """, unsafe_allow_html=True)
