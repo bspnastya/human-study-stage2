@@ -147,7 +147,7 @@ else:
                             key=f"t{st.session_state.idx}",
                             placeholder="Введите русские буквы и нажмите Enter")
 
-        col_send, col_none = st.columns([1, 1, 2])
+        col_send, col_none = st.columns([1, 1])
         send_clicked = col_send.form_submit_button("Отправить")
         none_clicked = col_none.form_submit_button("Не вижу букв")
 
