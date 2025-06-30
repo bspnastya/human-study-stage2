@@ -20,45 +20,12 @@ WITH_CHARS=["img1_dif_corners","img2_dif_corners","img4_same_corners","img5_same
 if "initialized" not in st.session_state:
     st.session_state.update(initialized=True,questions=[],idx=0,name="",phase="intro",phase_start_time=None,pause_until=0,_timer_flags={},session_id=secrets.token_hex(8))
 
-components.html(f"""
-<script>
-(function(){{
-  const flag='{MOBILE_QS_FLAG}',isMobile=window.innerWidth<1024;
-  if(isMobile)document.documentElement.classList.add('mobile-client');
-  const qs=new URLSearchParams(window.location.search);
-  if(isMobile&&!qs.has(flag)){{qs.set(flag,'1');window.location.search=qs.toString();}}
-}})();
-</script>
-""",height=0)
+components.html(f"""<script>(function(){{const f='{MOBILE_QS_FLAG}',m=innerWidth<1024;if(m)document.documentElement.classList.add('mobile-client');const qs=new URLSearchParams(location.search);if(m&&!qs.has(f)){{qs.set(f,'1');location.search=qs.toString();}}}})();</script>""",height=0)
 
-q=st.experimental_get_query_params()
-if q.get(MOBILE_QS_FLAG)==["1"]:
-    st.markdown("""
-    <style>
-      body{background:#808080;color:#fff;text-align:center;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}
-      h2{margin:0 auto;line-height:1.4;font-size:1.3rem;font-weight:500;}
-    </style>
-    <h2>Уважаемый участник<br>Данное исследование доступно только с <strong>ПК или ноутбука</strong>.</h2>
-    """,unsafe_allow_html=True)
-    st.stop()
+if st.experimental_get_query_params().get(MOBILE_QS_FLAG)==["1"]:
+    st.markdown("""<style>body{background:#808080;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;}h2{font-size:1.3rem;font-weight:500;line-height:1.4;}</style><h2>Уважаемый участник<br>Данное исследование доступно только с <strong>ПК или ноутбука</strong>.</h2>""",unsafe_allow_html=True); st.stop()
 
-st.markdown("""
-<style>
-html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}
-h1,h2,h3,h4,h5,h6,p,label,li,span{color:#111!important;}
-header[data-testid="stHeader"]{display:none;}
-.stButton>button{min-height:52px!important;padding:0 20px!important;border:1px solid #555!important;background:#222!important;color:#fff!important;border-radius:8px!important;}
-.stButton>button:hover{background:#333!important;color:#fff!important;}
-.stButton>button:focus{background:#333!important;color:#fff!important;box-shadow:none!important;}
-.stButton>button:disabled{background:#444!important;color:#888!important;cursor:not-allowed!important;opacity:0.6!important;}
-.stButton>button>div,.stButton>button>div>p{color:inherit!important;}
-input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
-#mobile-overlay{{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;color:#fff;font:500 1.2rem/1.5 sans-serif;text-align:center;padding:0 20px;background:#808080;}}
-@media(max-width:1023px){{#mobile-overlay{{display:flex;}}.block-container>.element-container:nth-child(n+2){{display:none!important;}}html,body{{overflow:hidden!important;height:100%!important;}}}}
-.stApp>div{{-webkit-backface-visibility:hidden;backface-visibility:hidden;transition:opacity .1s ease-in-out;}}
-</style>
-<div id="mobile-overlay">Уважаемый&nbsp;участник,<br>данное&nbsp;исследование доступно для прохождения только с&nbsp;ПК или&nbsp;ноутбука.</div>
-""",unsafe_allow_html=True)
+st.markdown("""<style>html,body,.stApp,[data-testid="stAppViewContainer"],.main,.block-container{background:#808080!important;color:#111!important;}h1,h2,h3,h4,h5,h6,p,label,li,span{color:#111!important;}header[data-testid="stHeader"]{display:none;}.stButton>button{min-height:52px!important;padding:0 20px!important;border:1px solid #555!important;background:#222!important;color:#fff!important;border-radius:8px!important;}.stButton>button:hover{background:#333!important;color:#fff!important;}.stButton>button:focus{background:#333!important;color:#fff!important;box-shadow:none!important;}.stButton>button:disabled{background:#444!important;color:#888!important;cursor:not-allowed!important;opacity:0.6!important;}.stButton>button>div,.stButton>button>div>p{color:inherit!important;}input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}</style>""",unsafe_allow_html=True)
 
 @st.cache_resource
 def open_book():
@@ -170,7 +137,7 @@ def finish(ans:str):
     st.session_state.update(idx=st.session_state.idx+1,phase="intro",phase_start_time=None,_timer_flags={}); st.experimental_rerun()
 
 if q["qtype"]=="corners":
-    sel=st.radio(q["prompt"],["Да","Нет","Затрудняюсь ответить."],index=None,key=f"r{st.session_state.idx}")
+    sel=st.radio(q["prompt"],["Да","Нет","Затрудняюсь ответить"],index=None,key=f"r{st.session_state.idx}")
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
     txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
@@ -190,4 +157,3 @@ else:
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         st.error("Допустимы только русские буквы и знаки пунктуации.")
-
