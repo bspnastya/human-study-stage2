@@ -59,12 +59,27 @@ div[data-testid="stForm"]{
 }
 
 div[data-testid="stHorizontalBlock"]{
-    gap:6px !important; 
+    gap:8px !important; 
 }
 
 .stButton>button{
     white-space:nowrap!important;
     min-width:170px!important;
+}
+
+
+div[data-testid="column"] {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+
+div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {
+    padding-right: 4px !important;
+}
+
+div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
+    padding-left: 4px !important;
 }
 </style>
 """, unsafe_allow_html=True)
