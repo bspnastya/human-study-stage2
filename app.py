@@ -23,14 +23,32 @@ if "initialized" not in st.session_state:
                            phase_start_time=None,pause_until=0,_timer_flags={},
                            session_id=secrets.token_hex(8))
 
-components.html(f"""<script>(function(){{const f='{MOBILE_QS_FLAG}',m=innerWidth<1024;
-if(m)document.documentElement.classList.add('mobile-client');
-const qs=new URLSearchParams(location.search);if(m&&!qs.has(f)){{qs.set(f,'1');location.search=qs.toString();}}}})();</script>""",height=0)
+components.html(f"""
+<script>
+(function(){{
+  const flag='{MOBILE_QS_FLAG}';
+  const isMobile=window.innerWidth<1024;
+  if(isMobile){{
+    document.documentElement.classList.add('mobile-client');
+    const qs=new URLSearchParams(window.location.search);
+    if(!qs.has(flag)){{
+      qs.set(flag,'1');
+      window.location.search=qs.toString();
+    }}
+  }}
+}})();
+</script>
+""",height=0)
 
-if st.experimental_get_query_params().get(MOBILE_QS_FLAG)==["1"]:
+try:
+    _qp=st.query_params
+except AttributeError:
+    _qp=st.experimental_get_query_params()
+
+if _qp.get(MOBILE_QS_FLAG)==["1"]:
    st.markdown("""<style>body{background:#808080;color:#fff;display:flex;align-items:center;
 justify-content:center;height:100vh;margin:0;}h2{font-size:1.3rem;font-weight:500;
-line-height:1.4;}</style><h2>Уважаемый участник<br>Данное исследование доступно только с <strong>ПК или ноутбука</strong>.</h2>""",
+line-height:1.4;}</style><h2>Уважаемый участник<br>Данное исследование доступно только с <strong>ПК или&nbsp;ноутбука</strong>.</h2>""",
                unsafe_allow_html=True); st.stop()
 
 
@@ -237,5 +255,6 @@ else:
                 st.error("Если не видите букв, удалите введенные буквы и нажмите «Не вижу букв» еще раз.")
             else:
                 finish("Не вижу")
+
 
 
