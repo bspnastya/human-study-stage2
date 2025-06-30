@@ -51,15 +51,20 @@ input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 
 st.markdown("""
 <style>
-/* убираем серую рамку у формы */
-form[data-testid="stForm"]{
+form[data-testid="stForm"],
+div[data-testid="stForm"]{
     border:none!important;
     padding:0!important;
     background:transparent!important;
 }
-/* сдвигаем колонки ближе друг к другу */
+
 div[data-testid="stHorizontalBlock"]{
-    gap:12px !important;          /* было ~32 px, стало в ~2.5 раза меньше */
+    gap:16px !important; 
+}
+
+.stButton>button{
+    white-space:nowrap!important;
+    min-width:170px!important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -209,7 +214,7 @@ else:
                             placeholder="Введите русские буквы и нажмите Enter")
 
     
-        left_sp, col_send, col_none, right_sp = st.columns([3,1,1,3])
+        col_send, col_none = st.columns([1, 1])
         send_clicked = col_send.form_submit_button("Отправить")
         none_clicked = col_none.form_submit_button("Не вижу букв")
 
