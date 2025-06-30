@@ -58,33 +58,27 @@ div[data-testid="stForm"]{
     background:transparent!important;
 }
 
-div[data-testid="stHorizontalBlock"]{
-    gap:0px !important;
-    margin:0 !important;
-    padding:0 !important;
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] {
+    gap: 4px !important;
 }
 
-div[data-testid="column"] {
-    padding:0 !important;
-    margin:0 !important;
-    width:auto !important;
-    flex-grow:0 !important;
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"] {
+    padding: 0 !important;
+    flex: 1 !important;
 }
 
-form div[data-testid="column"] {
-    padding-right:4px !important;
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child {
+    padding-right: 2px !important;
 }
-form div[data-testid="column"]:last-child {
-    padding-right:0 !important;
+
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child {
+    padding-left: 2px !important;
 }
+
 .stButton>button{
     white-space:nowrap!important;
     min-width:170px!important;
-    margin:0 !important;
-}
-.stButton {
-    margin:0 !important;
-    padding:0 !important;
+    width: 100% !important;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -232,11 +226,16 @@ else:
     with st.form(key=f"form{st.session_state.idx}", clear_on_submit=False):
         txt = st.text_input(q["prompt"], key=f"t{st.session_state.idx}",
                             placeholder="Введите русские буквы и нажмите Enter")
-
-    
-        col_send, col_none = st.columns([1, 1])
+        
+     
+        st.markdown(f'<div id="btn-container-{st.session_state.idx}">', unsafe_allow_html=True)
+        
+        
+        col_send, col_none = st.columns(2, gap="small")
         send_clicked = col_send.form_submit_button("Отправить")
         none_clicked = col_none.form_submit_button("Не вижу букв")
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
         if send_clicked:
             if not txt:
