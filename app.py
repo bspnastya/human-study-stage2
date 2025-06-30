@@ -259,7 +259,7 @@ else:
     
         txt = st.text_input("",
                             key=f"t{st.session_state.idx}",
-                            placeholder="Введите русские буквы и нажмите Enter",
+                            placeholder="Введите русские буквы и нажмите Enter или воспользуйтесь кнопкой «Отправить»",
                             label_visibility="collapsed")
 
   
