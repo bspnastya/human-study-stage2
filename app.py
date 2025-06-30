@@ -142,43 +142,25 @@ if q["qtype"]=="corners":
     if sel: finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
     
-    txt=st.text_input(q["prompt"],key=f"t{st.session_state.idx}",placeholder="Введите русские буквы и нажмите Enter")
+    with st.form(key=f"form{st.session_state.idx}", clear_on_submit=False):
+        txt = st.text_input(q["prompt"],
+                            key=f"t{st.session_state.idx}",
+                            placeholder="Введите русские буквы и нажмите Enter")
 
-    
-    col_send, col_none, _ = st.columns([1,1,2])
-    submit_clicked = col_send.button("Отправить", key=f"submit{st.session_state.idx}")
-    none_clicked   = col_none.button("Не вижу букв", key=f"none{st.session_state.idx}")
+        col_send, col_none = st.columns([1, 1, 2])
+        send_clicked = col_send.form_submit_button("Отправить")
+        none_clicked = col_none.form_submit_button("Не вижу букв")
 
-    has_letters = bool(re.search(r"[А-Яа-яЁё]", txt))
-    error_flag  = False
-    handled     = False  
+        if send_clicked:
+            if not txt:
+                st.error("Введите буквы или нажмите «Не вижу букв».")
+            elif not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
+                st.error("Допустимы только русские буквы и знаки пунктуации.")
+            else:
+                finish(txt.strip())
 
-    
-    if none_clicked:
-        if has_letters:
-            error_flag = True
-        else:
-            finish("Не вижу")
-        handled = True
-
-   
-    if submit_clicked and not handled:
-        if not txt:
-            st.error("Введите буквы или нажмите «Не вижу букв».")
-            handled = True
-        elif not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
-            st.error("Допустимы только русские буквы и знаки пунктуации.")
-            handled = True
-        else:
-            finish(txt.strip())
-            handled = True
-
-    
-    if error_flag:
-        st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Если&nbsp;не&nbsp;видите&nbsp;букв,&nbsp;удалите&nbsp;введенные&nbsp;буквы&nbsp;и&nbsp;нажмите&nbsp;«Не&nbsp;вижу&nbsp;букв»&nbsp;еще&nbsp;раз</div>",unsafe_allow_html=True)
-
-    if not handled and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
-        finish(txt.strip())
-    elif not handled and txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
-        st.error("Допустимы только русские буквы и знаки пунктуации.")
-
+        elif none_clicked:
+            if txt.strip():
+                st.error("Если не видите букв, удалите введенные буквы и нажмите «Не вижу букв» еще раз.")
+            else:
+                finish("Не вижу")
