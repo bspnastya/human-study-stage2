@@ -23,11 +23,13 @@ if "initialized" not in st.session_state:
                            phase_start_time=None,pause_until=0,_timer_flags={},
                            session_id=secrets.token_hex(8))
 
+
 components.html(f"""
 <script>
 (function(){{
-  const flag='{MOBILE_QS_FLAG}';
+  const flag = '{MOBILE_QS_FLAG}';
   const isMobile = window.innerWidth < 1024;
+
   if (isMobile) {{
       document.documentElement.classList.add('mobile-client');
       const qs = new URLSearchParams(window.location.search);
@@ -40,12 +42,9 @@ components.html(f"""
 </script>
 """, height=0)
 
-try:
-    qp = st.query_params          
-except AttributeError:
-    qp = st.experimental_get_query_params()
+qs = getattr(st, "query_params", st.experimental_get_query_params)()
+flag_val = qs.get(MOBILE_QS_FLAG)
 
-flag_val = qp.get(MOBILE_QS_FLAG)
 if flag_val in (["1"], "1"):
     st.markdown("""
     <style>
@@ -58,6 +57,25 @@ if flag_val in (["1"], "1"):
     </h2>
     """, unsafe_allow_html=True)
     st.stop()
+
+
+st.markdown("""
+<style>
+#mobile-overlay{display:none;}
+@media(max-width:1023px){
+  #mobile-overlay{position:fixed;inset:0;z-index:2147483647;display:flex;
+                  align-items:center;justify-content:center;background:#808080;
+                  color:#fff;font:500 1.2rem/1.5 sans-serif;text-align:center;padding:0 20px;}
+  .block-container>.element-container:nth-child(n+2){display:none!important;}
+  html,body{overflow:hidden!important;height:100%!important;}
+}
+</style>
+<div id="mobile-overlay">
+  Уважаемый&nbsp;участник,<br>
+  данное&nbsp;исследование доступно для прохождения только с&nbsp;ПК или&nbsp;ноутбука.
+</div>
+""", unsafe_allow_html=True)
+
 
 
 st.markdown("""<style>
