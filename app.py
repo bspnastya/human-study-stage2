@@ -132,7 +132,7 @@ st.markdown("---")
 
 def finish(ans:str):
     ms=int((time.time()-st.session_state.phase_start_time)*1000)
-    ok=clean(ans)==clean(q["correct") ] if q["qtype"]=="letters" else ans.lower()==q["correct"].lower()
+    ok=clean(ans)==clean(q["correct"]) if q["qtype"]=="letters" else ans.lower()==q["correct"].lower()
     Q.put([datetime.datetime.utcnow().isoformat(),st.session_state.name,q["№"],q["group"],q["alg"],q["qtype"],q["prompt"],ans,q["correct"],ms,ok,st.session_state.session_id])
     bump_counter(q["group"],q["alg"])
     st.session_state.update(idx=st.session_state.idx+1,phase="intro",phase_start_time=None,_timer_flags={}); st.experimental_rerun()
