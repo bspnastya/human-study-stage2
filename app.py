@@ -59,6 +59,7 @@ div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-test
 .stButton>button{white-space:nowrap!important;width:100%!important;min-width:170px!important;}
 
 .q-prompt{font-size:1.1rem!important;line-height:1.6;}
+.q-prompt{margin-bottom:18px !important;}
 form[data-testid="stForm"] input{font-size:1.1rem!important;}
 form[data-testid="stForm"] ::placeholder{font-size:1.1rem!important;}
 form[data-testid="stForm"] .stButton>button{font-size:1.1rem!important;}
