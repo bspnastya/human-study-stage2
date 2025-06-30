@@ -84,7 +84,7 @@ def make_qs()->List[Dict]:
     for g in GROUPS:
         alg=st.session_state.letters_plan[g]
         if cnt.get((g,alg),0)<TARGET_SHOWS:
-            qs.append({"group":g,"alg":alg,"img":url(g,alg),"qtype":"letters","prompt":"Введите в поле ниже буквы и нажмите Enter. Если вы не видите букв, то очистите поле ввода.","correct":LETTER[g]})
+            qs.append({"group":g,"alg":alg,"img":url(g,alg),"qtype":"letters","prompt":"Если на изображении вы видите буквы, то укажите, какие именно.","correct":LETTER[g]})
     for g,alg in itertools.product(GROUPS,ALGS_COR):
         if cnt.get((g,alg),0)<TARGET_SHOWS:
             qs.append({"group":g,"alg":alg,"img":url(g,alg),"qtype":"corners","prompt":"Считаете ли вы, что правый верхний угол и нижний левый угол одного цвета с точностью до оттенка?","correct":CORNER[g]})
@@ -152,7 +152,7 @@ else:
             else:
                 finish("Не вижу")
     if error_flag:
-        st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Очистите&nbsp;поле&nbsp;ввода,&nbsp;если&nbsp;не&nbsp;видите&nbsp;букв.</div>",unsafe_allow_html=True)
+        st.markdown("<div style='margin-top:10px;padding:12px 16px;border-radius:8px;background:#f8d7da;color:#111;font-size:1.05rem;font-weight:500;white-space:nowrap;'>Если&nbsp;не&nbsp;видите&nbsp;букв,&nbsp;удалите&nbsp;введенные&nbsp;буквы&nbsp;и&nbsp;нажмите&nbsp;«Не&nbsp;вижу&nbsp;букв»&nbsp;еще&nbsp;раз</div>",unsafe_allow_html=True)
     if not error_flag and txt and re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
         finish(txt.strip())
     elif txt and not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+",txt):
