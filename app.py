@@ -51,46 +51,21 @@ input[data-testid="stTextInput"]{height:52px;padding:0 16px;font-size:1.05rem;}
 
 st.markdown("""
 <style>
-form[data-testid="stForm"],
-div[data-testid="stForm"]{        
-    border:none!important;
-    padding:0!important;
-    background:transparent!important;
-}
+form[data-testid="stForm"], div[data-testid="stForm"]{border:none!important;padding:0!important;background:transparent!important;}
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"]{gap:4px!important;}
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{padding:0!important;flex:1!important;}
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child{padding-right:2px!important;}
+div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child{padding-left:2px!important;}
+.stButton>button{white-space:nowrap!important;width:100%!important;min-width:170px!important;}
 
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"]{
-    gap:4px!important;
-}
-
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]{
-    padding:0!important;
-    flex:1!important;
-}
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:first-child{
-    padding-right:2px!important;
-}
-div[id^="btn-container-"] + div[data-testid="stHorizontalBlock"] > div[data-testid="column"]:last-child{
-    padding-left:2px!important;
-}
-
-form[data-testid="stForm"] .stTextInput > label,                
-form[data-testid="stForm"] input[data-testid="stTextInput"],     
-form[data-testid="stForm"] input[data-testid="stTextInput"]::placeholder,
-form[data-testid="stForm"] .stButton>button,                    
-form[data-testid="stForm"] .stAlert,                            
-.stRadio > label,                                           
-.stRadio div[role="radiogroup"] label                          
-{
-    font-size:1.1rem !important;
-}
-
-.stButton>button{
-    white-space:nowrap!important;
-    width:100%!important;
-    min-width:170px!important;
-}
+.q-prompt{font-size:1.1rem!important;line-height:1.6;}
+form[data-testid="stForm"] input{font-size:1.1rem!important;}
+form[data-testid="stForm"] ::placeholder{font-size:1.1rem!important;}
+form[data-testid="stForm"] .stButton>button{font-size:1.1rem!important;}
+.stRadio div[role="radiogroup"] label{font-size:1.1rem!important;}
 </style>
 """, unsafe_allow_html=True)
+
 
 @st.cache_resource
 def open_book():
@@ -226,37 +201,40 @@ def finish(ans:str):
 
 
 if q["qtype"]=="corners":
-   sel=st.radio(q["prompt"],["Да","Нет","Затрудняюсь ответить"],
-                index=None,key=f"r{st.session_state.idx}")
-   if sel:
-       finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
-
+    st.markdown(f"<div class='q-prompt'>{q['prompt']}</div>", unsafe_allow_html=True)
+    sel = st.radio("", ["Да","Нет","Затрудняюсь ответить"],
+                   index=None, key=f"r{st.session_state.idx}", label_visibility="collapsed")
+    if sel:
+        finish("да" if sel.startswith("Да") else "нет" if sel.startswith("Нет") else "затрудняюсь")
 else:
-   with st.form(key=f"form{st.session_state.idx}", clear_on_submit=False):
-       txt = st.text_input(q["prompt"], key=f"t{st.session_state.idx}",
-                           placeholder="Введите русские буквы и нажмите Enter")
-       
+    with st.form(key=f"form{st.session_state.idx}", clear_on_submit=False):
+        st.markdown(f"<div class='q-prompt'>{q['prompt']}</div>", unsafe_allow_html=True)
+
     
-       st.markdown(f'<div id="btn-container-{st.session_state.idx}">', unsafe_allow_html=True)
-       
-       
-       col_send, col_none = st.columns(2, gap="small")
-       send_clicked = col_send.form_submit_button("Отправить")
-       none_clicked = col_none.form_submit_button("Не вижу букв")
-       
-       st.markdown('</div>', unsafe_allow_html=True)
+        txt = st.text_input("",
+                            key=f"t{st.session_state.idx}",
+                            placeholder="Введите русские буквы и нажмите Enter",
+                            label_visibility="collapsed")
 
-       if send_clicked:
-           if not txt:
-               st.error("Введите буквы или нажмите «Не вижу букв».")
-           elif not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
-               st.error("Допустимы только русские буквы и знаки пунктуации.")
-           else:
-               finish(txt.strip())
+  
+        st.markdown(f'<div id="btn-container-{st.session_state.idx}">', unsafe_allow_html=True)
+        col_send, col_none = st.columns(2, gap="small")
+        send_clicked = col_send.form_submit_button("Отправить")
+        none_clicked = col_none.form_submit_button("Не вижу букв")
+        st.markdown("</div>", unsafe_allow_html=True)
 
-       elif none_clicked:
-           if txt.strip():
-               st.error("Если не видите букв, удалите введенные буквы и нажмите «Не вижу букв» еще раз.")
-           else:
-               finish("Не вижу")
+        if send_clicked:
+            if not txt:
+                st.error("Введите буквы или нажмите «Не вижу букв».")
+            elif not re.fullmatch(r"[А-Яа-яЁё ,.;:-]+", txt):
+                st.error("Допустимы только русские буквы и знаки пунктуации.")
+            else:
+                finish(txt.strip())
+
+        elif none_clicked:
+            if txt.strip():
+                st.error("Если не видите букв, удалите введенные буквы и нажмите «Не вижу букв» еще раз.")
+            else:
+                finish("Не вижу")
+
 
