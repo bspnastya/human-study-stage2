@@ -27,25 +27,19 @@ if "initialized" not in st.session_state:
 components.html(f"""
 <script>
 (function(){{
-  const flag = '{MOBILE_QS_FLAG}';
-  const isMobile = window.innerWidth < 1024;
-
-  if (isMobile) {{
-      document.documentElement.classList.add('mobile-client');
-      const qs = new URLSearchParams(window.location.search);
-      if (!qs.has(flag)) {{
-          qs.set(flag,'1');
-          window.location.search = qs.toString();
-      }}
+  const flag='{MOBILE_QS_FLAG}', isMobile=innerWidth<1024;
+  if(isMobile){{
+    document.documentElement.classList.add('mobile-client');
+    const qs=new URLSearchParams(location.search);
+    if(!qs.has(flag)){ qs.set(flag,'1'); location.search=qs.toString(); }
   }}
 }})();
-</script>
-""", height=0)
+</script>""", height=0)
 
-qs = getattr(st, "query_params", st.experimental_get_query_params)()
-flag_val = qs.get(MOBILE_QS_FLAG)
+attr = getattr(st, "query_params", None)
+qs   = attr() if callable(attr) else attr or st.experimental_get_query_params()
 
-if flag_val in (["1"], "1"):
+if qs.get(MOBILE_QS_FLAG) in (["1"], "1"):
     st.markdown("""
     <style>
       body{background:#808080;color:#fff;text-align:center;display:flex;
@@ -53,10 +47,10 @@ if flag_val in (["1"], "1"):
       h2{margin:0 auto;line-height:1.4;font-size:1.3rem;font-weight:500;}
     </style>
     <h2>Уважаемый участник<br>
-        Данное исследование доступно только с <strong>ПК или&nbsp;ноутбука</strong>.
-    </h2>
-    """, unsafe_allow_html=True)
+        Данное исследование доступно только с&nbsp;<strong>ПК&nbsp;или&nbsp;ноутбука</strong>.
+    </h2>""", unsafe_allow_html=True)
     st.stop()
+
 
 
 st.markdown("""
