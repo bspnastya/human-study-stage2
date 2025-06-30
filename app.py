@@ -178,8 +178,35 @@ def make_qs()->List[Dict]:
            qs.append({"group":g,"alg":alg,"img":url(g,alg),"qtype":"corners",
                       "prompt":"Считаете ли вы, что правый верхний угол и нижний левый угол одного цвета с точностью до оттенка?",
                       "correct":CORNER[g]})
+   
+   if len(qs) < 15:
+       backup_qs = []
+       
+       for g in GROUPS:
+           alg=st.session_state.letters_plan[g]
+           if cnt.get((g,alg),0)>=TARGET_SHOWS:
+               backup_qs.append({"group":g,"alg":alg,"img":url(g,alg),"qtype":"letters",
+                                 "prompt":"Если на изображении вы видите буквы, то укажите, какие именно.",
+                                 "correct":LETTER[g],
+                                 "shows":cnt.get((g,alg),0)})
+       
+       for g,alg in itertools.product(GROUPS,ALGS_COR):
+           if cnt.get((g,alg),0)>=TARGET_SHOWS:
+               backup_qs.append({"group":g,"alg":alg,"img":url(g,alg),"qtype":"corners",
+                                 "prompt":"Считаете ли вы, что правый верхний угол и нижний левый угол одного цвета с точностью до оттенка?",
+                                 "correct":CORNER[g],
+                                 "shows":cnt.get((g,alg),0)})
+       
+       backup_qs.sort(key=lambda x: x.get("shows", TARGET_SHOWS))
+       
+       needed = 15 - len(qs)
+       qs.extend(backup_qs[:needed])
+   
    random.shuffle(qs)
-   for i,q in enumerate(qs,1): q["№"]=i
+   for i,q in enumerate(qs,1): 
+       q["№"]=i
+       q.pop("shows", None)
+   
    return qs
 if not st.session_state.questions: st.session_state.questions=make_qs()
 
@@ -282,6 +309,3 @@ else:
                 st.error("Если не видите букв, удалите введенные буквы и нажмите «Не вижу букв» еще раз.")
             else:
                 finish("Не вижу")
-
-
-
