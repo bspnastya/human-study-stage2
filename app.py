@@ -59,7 +59,7 @@ div[data-testid="stForm"]{
 }
 
 div[data-testid="stHorizontalBlock"]{
-    gap:16px !important; 
+    gap:6px !important; 
 }
 
 .stButton>button{
